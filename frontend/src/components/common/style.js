@@ -10,7 +10,6 @@ export const CardWrapper = styled.section`
 export const CardTitle = styled.h2`
   margin-bottom: 16px;
   font-size: ${({ theme }) => theme.FONT_SIZE.h3};
-  line-height: ${({ theme }) => theme.FONT_LINE.h3};
   font-weight: ${({ theme }) => theme.FONT_WEIGHT.bold};
 `;
 

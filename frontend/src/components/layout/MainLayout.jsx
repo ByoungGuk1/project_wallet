@@ -2,17 +2,17 @@ import { Outlet } from "react-router-dom";
 
 import Header from "./header/Header";
 import Footer from "./footer/Footer";
-import { Main, LayoutWrapper } from "./style";
+import { S } from "./style";
 
 function MainLayout() {
   return (
-    <LayoutWrapper>
+    <S.LayoutWrapper>
       <Header />
-      <Main>
+      <S.Main>
         <Outlet />
-      </Main>
+      </S.Main>
       <Footer />
-    </LayoutWrapper>
+    </S.LayoutWrapper>
   );
 }
 

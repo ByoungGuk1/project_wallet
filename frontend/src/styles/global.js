@@ -13,7 +13,7 @@ const GlobalStyle = createGlobalStyle`
     font-family: Arial, "Noto Sans KR", sans-serif;
     background: ${({ theme }) => theme.PALETTE.background};
     color: ${({ theme }) => theme.PALETTE.black};
-    line-height: 1.5;
+    margin: 0 auto;
   }
 
   a {

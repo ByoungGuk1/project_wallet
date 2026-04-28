@@ -1,18 +1,20 @@
 import styled from "styled-components";
 import { pageContainer } from "../../../styles/common";
 
-export const FooterWrapper = styled.footer`
-  margin-top: 40px;
-  background: ${({ theme }) => theme.PALETTE.white};
-  border-top: 1px solid ${({ theme }) => theme.PALETTE.gray[200]};
+export const S = {};
+
+S.FooterWrapper = styled.footer`
+  width: 100%;
+  background: ${({ theme }) => theme.PALETTE.background};
 `;
 
-export const FooterInner = styled.div`
+S.FooterInner = styled.div`
   ${pageContainer}
-  padding: 24px 0;
+  padding: 32px 0;
 `;
 
-export const FooterText = styled.p`
-  color: ${({ theme }) => theme.PALETTE.gray[500]};
-  font-size: ${({ theme }) => theme.FONT_SIZE.small};
+S.FooterText = styled.p`
+  font-size: ${({ theme }) => theme.FONT_SIZE.h7};
 `;
+
+export default S;

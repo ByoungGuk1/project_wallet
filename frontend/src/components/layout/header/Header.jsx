@@ -1,19 +1,32 @@
-import { HeaderWrapper, HeaderInner, Logo, Nav, NavItem } from "./style";
+import { S } from "./style";
 
 function Header() {
   return (
-    <HeaderWrapper>
-      <HeaderInner>
-        <Logo to="/">개인 자산 관리</Logo>
+    <S.HeaderWrapper>
+      <S.HeaderTop>
+        <S.NavSignin to="/login">로그인</S.NavSignin>
+        <p>|</p>
+        <S.NavSignup to="/signup">회원가입</S.NavSignup>
+      </S.HeaderTop>
 
-        <Nav>
-          <NavItem to="/">홈</NavItem>
-          <NavItem to="/accounts">계좌</NavItem>
-          <NavItem to="/transactions">거래 내역</NavItem>
-          <NavItem to="/statistics">통계</NavItem>
-        </Nav>
-      </HeaderInner>
-    </HeaderWrapper>
+      <S.HeaderInner>
+        <S.HeaderLeft>
+          <S.Logo to="/">WalletPay</S.Logo>
+          <S.Nav>
+            <S.NavItem to="/my-wallet">개인 지갑</S.NavItem>
+            <S.NavItem to="/group-wallet">그룹 지갑</S.NavItem>
+            <S.NavItem to="/community">커뮤니티</S.NavItem>
+            <S.NavItem to="/statistics">통계 분석</S.NavItem>
+          </S.Nav>
+        </S.HeaderLeft>
+
+        <S.HeaderActions>
+          <S.IconButton type="button">🔍</S.IconButton>
+          <S.IconButton type="button">🔔</S.IconButton>
+          <S.IconButton type="button">☰</S.IconButton>
+        </S.HeaderActions>
+      </S.HeaderInner>
+    </S.HeaderWrapper>
   );
 }
 

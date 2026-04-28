@@ -1,12 +1,12 @@
-import { FooterWrapper, FooterInner, FooterText } from "./style";
+import { S } from "./style";
 
 function Footer() {
   return (
-    <FooterWrapper>
-      <FooterInner>
-        <FooterText>Personal Wallet Management Service</FooterText>
-      </FooterInner>
-    </FooterWrapper>
+    <S.FooterWrapper>
+      <S.FooterInner>
+        <S.FooterText>© 2026 Personal Wallet Management Service</S.FooterText>
+      </S.FooterInner>
+    </S.FooterWrapper>
   );
 }
 
