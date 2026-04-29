@@ -13,8 +13,8 @@ S.Page = styled.div`
 
 S.FirstSection = styled.section`
   width: 100%;
-  height: 348px;
-  background-color: #f0f0f0;
+  height: 450px;
+  background-color: #865a5a;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -24,7 +24,7 @@ S.FirstSection = styled.section`
 S.AdSection = styled.section`
   width: 65%;
   height: 100%;
-  background-color: #ffffff;
+  background-color: #f3cdcd;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -33,7 +33,7 @@ S.AdSection = styled.section`
 S.SigninSection = styled.section`
   width: 30%;
   height: 100%;
-  background-color: #a36c6c;
+  background-color: #af8686;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -41,29 +41,25 @@ S.SigninSection = styled.section`
 
 S.ReportSection = styled.section`
   width: 100%;
-  height: 348px;
+  height: 450px;
 `;
 
 S.EventsSection = styled.section`
   width: 100%;
   height: 920px;
-  background-color: #343483;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-`;
-
-S.EventsRightColumn = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 20px;
+`;
+
+S.SubEventsWrapper = styled.div`
+  display: flex;
+  gap: 35px;
+  justify-content: space-between;
 `;
 
 S.NotificationsSection = styled.section`
   width: 100%;
   height: 121px;
-  background-color: #834343;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -71,37 +67,32 @@ S.NotificationsSection = styled.section`
   > div {
     width: 33%;
     height: 100%;
-    border-radius: 10px;
-    border: 1px solid ${({ theme }) => theme.PALETTE.text.secondary};
+    border-radius: 4px;
+    border: 1px solid ${({ theme }) => theme.PALETTE.gray[300]};
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+    justify-content: center;
   }
 `;
 
 S.CustomerServiceBox = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
   > p {
-    padding: 20px 0 7px 20px;
     font-size: ${({ theme }) => theme.FONT_SIZE.h6};
     font-weight: ${({ theme }) => theme.FONT_WEIGHT.bold};
     color: ${({ theme }) => theme.PALETTE.text.main};
   }
-  > div {
-    display: flex;
-    width: calc(100% - 40px);
-    height: 100%;
-    gap: 10px;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-around;
-    gap: 10px;
-    margin-left: 20px;
-    margin-right: 20px;
-  }
+`;
+
+S.CustomerServiceWrapper = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: center;
+  width: 100%;
 `;
 
 S.CustomerService = styled(Link)`
-  background-color: #ffffff;
   display: flex;
   flex-direction: column;
   align-items: center;

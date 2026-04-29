@@ -13,7 +13,7 @@ S.ReportWrapper = styled.div`
 S.CalendarSection = styled.div`
   width: 65%;
   height: 100%;
-  background-color: #fff;
+  background-color: #dab1b1;
   display: flex;
   align-items: center;
   justify-content: center;
