@@ -14,9 +14,7 @@ const MainEvent = ({ events = [] }) => {
           <S.EventTitle>{event.title}</S.EventTitle>
           <S.EventDescription>{event.description}</S.EventDescription>
         </S.EventText>
-        <S.EventImage>
-          {event.img}
-        </S.EventImage>
+        <S.EventImage>{event.img}</S.EventImage>
       </S.EventBox>
     );
   }
