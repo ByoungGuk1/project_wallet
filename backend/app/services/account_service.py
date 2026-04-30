@@ -12,7 +12,7 @@ def get_accounts(db: Session):
 def get_account(db: Session, account_id: int):
     account = account_repository.find_by_id(db, account_id)
     if account is None:
-        raise HTTPException(status_code=404, detail="계좌를 찾을 수 없습니다.")
+        raise HTTPException(status_code=404, detail="怨꾩쥖瑜?李얠쓣 ???놁뒿?덈떎.")
     return account
 
 
@@ -28,4 +28,4 @@ def update_account(db: Session, account_id: int, data: AccountUpdate):
 def delete_account(db: Session, account_id: int):
     account = get_account(db, account_id)
     account_repository.delete(db, account)
-    return {"message": "계좌가 삭제되었습니다."}
+    return {"message": "怨꾩쥖媛 ??젣?섏뿀?듬땲??"}
