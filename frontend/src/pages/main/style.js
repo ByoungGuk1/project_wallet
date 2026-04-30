@@ -31,7 +31,6 @@ S.AdSection = styled.section`
 S.SigninSection = styled.section`
   width: 30%;
   height: 100%;
-  background-color: #af8686;
   display: flex;
   align-items: center;
   justify-content: center;

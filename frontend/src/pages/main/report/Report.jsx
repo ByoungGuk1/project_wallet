@@ -20,8 +20,10 @@ const Report = ({ data = [] }) => {
     if (categories.length === 0) return;
 
     const defaultCategory =
-      categories.find((category) => Array.isArray(category.history)) ||
-      categories[0];
+      categories.find(
+        (category) =>
+          Array.isArray(category.history) && category.history.length > 0,
+      ) || categories[0];
 
     setSelectedCategory(defaultCategory);
   }, [data]);
@@ -37,16 +39,24 @@ const Report = ({ data = [] }) => {
   }, [selectedCategory]);
 
   function categoryList() {
-    return categories.map((category) => (
-      <S.CategoryButton
-        key={category.name}
-        type="button"
-        onClick={() => setSelectedCategory(category)}
-        $selected={category.name === selectedCategory?.name}
-      >
-        {category.name}
-      </S.CategoryButton>
-    ));
+    return categories.map((category) => {
+      const isSelected = category.name === selectedCategory?.name;
+      const hasGroups =
+        Array.isArray(category.history) && category.history.length > 0;
+
+      return (
+        <S.CategoryButton
+          key={category.name}
+          type="button"
+          onClick={() => setSelectedCategory(category)}
+          $selected={isSelected}
+          $disabled={!hasGroups}
+          aria-pressed={isSelected}
+        >
+          {category.name}
+        </S.CategoryButton>
+      );
+    });
   }
 
   function groupList() {
@@ -77,7 +87,7 @@ const Report = ({ data = [] }) => {
 
       <S.GroupSection>
         <S.CategoryList>
-          {categoryList()}
+          <S.CategoryTabs>{categoryList()}</S.CategoryTabs>
           <S.SettingButton type="button">설정</S.SettingButton>
         </S.CategoryList>
 

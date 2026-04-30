@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { boxShadow } from "../../../../styles/common";
 
 export const S = {};
 
@@ -11,6 +12,7 @@ S.CalendarWrapper = styled.div`
   border: 1px solid ${({ theme }) => theme.PALETTE.gray[200]};
   display: flex;
   flex-direction: column;
+  ${boxShadow}
 `;
 
 S.CalendarHeader = styled.div`

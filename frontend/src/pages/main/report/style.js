@@ -24,14 +24,22 @@ S.GroupSection = styled.div`
 `;
 
 S.CategoryList = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
   width: 100%;
-  gap: 10px;
-  padding: 0 30px;
-  margin: 27px auto;
-  border-bottom: 1px solid ${({ theme }) => theme.PALETTE.primary.light};
+  padding: 0 24px;
+  margin: 24px auto 18px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 12px;
+
+  border-bottom: 1px solid ${({ theme }) => theme.PALETTE.gray[200]};
+`;
+
+S.CategoryTabs = styled.div`
+  display: flex;
+  align-items: end;
+  gap: 8px;
+  overflow-x: auto;
 `;
 
 S.CategoryButton = styled.button`

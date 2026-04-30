@@ -6,6 +6,7 @@ import Notification from "./notification/Notification";
 import Report from "./report/Report";
 import S from "./style";
 import SubEvent from "./subevent/SubEvent";
+import SigninContainer from "./signin/SigninContainer";
 
 import defaultAdImage from "../../assets/images/main-ad.png";
 
@@ -157,7 +158,9 @@ function MainContainer() {
         <S.AdSection>
           <AdvertisementContainer adList={adList}></AdvertisementContainer>
         </S.AdSection>
-        <S.SigninSection>로그인 영역</S.SigninSection>
+        <S.SigninSection>
+          <SigninContainer></SigninContainer>
+        </S.SigninSection>
       </S.FirstSection>
 
       <S.ReportSection>
@@ -179,17 +182,14 @@ function MainContainer() {
           <p>고객센터</p>
           <S.CustomerServiceWrapper>
             <S.CustomerService to="/faq">
-              {/* <img src="" alt="자주하는 질문 아이콘" /> */}
               <span>❓</span>
               자주하는 질문
             </S.CustomerService>
             <S.CustomerService to="/support">
-              {/* <img src="" alt="이메일 상담 아이콘" /> */}
               <span>✉️</span>
               이메일 상담
             </S.CustomerService>
             <S.CustomerService to="/ars">
-              {/* <img src="" alt="ARS 아이콘" /> */}
               <span>📞</span>
               ARS
             </S.CustomerService>
