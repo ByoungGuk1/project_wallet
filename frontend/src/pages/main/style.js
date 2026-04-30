@@ -1,33 +1,108 @@
 import styled from "styled-components";
+import { Link } from "react-router-dom";
 
-export const Page = styled.div`
-  display: grid;
+export const S = {};
+
+S.Page = styled.div`
+  width: 100%;
+  background-color: ${({ theme }) => theme.PALETTE.background};
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+`;
+
+S.FirstSection = styled.section`
+  width: 100%;
+  height: 450px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 20px;
 `;
 
-export const SummaryGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+S.AdSection = styled.section`
+  width: 65%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
 
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
+S.SigninSection = styled.section`
+  width: 30%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+S.ReportSection = styled.section`
+  width: 100%;
+  height: 450px;
+`;
+
+S.EventsSection = styled.section`
+  width: 100%;
+  height: 920px;
+  display: flex;
+  flex-direction: column;
+`;
+
+S.SubEventsWrapper = styled.div`
+  display: flex;
+  gap: 35px;
+  justify-content: space-between;
+`;
+
+S.NotificationsSection = styled.section`
+  width: 100%;
+  height: 121px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  > div {
+    width: 33%;
+    height: 100%;
+    border-radius: 4px;
+    border: 1px solid ${({ theme }) => theme.PALETTE.gray[300]};
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+    justify-content: center;
   }
 `;
 
-export const SummaryItem = styled.div`
-  padding: 18px;
-  border-radius: 12px;
-  background: ${({ theme }) => theme.PALETTE.gray[50]};
+S.CustomerServiceBox = styled.div`
+  > p {
+    font-size: ${({ theme }) => theme.FONT_SIZE.h6};
+    font-weight: ${({ theme }) => theme.FONT_WEIGHT.bold};
+    color: ${({ theme }) => theme.PALETTE.text.main};
+  }
 `;
 
-export const SummaryLabel = styled.p`
-  margin-bottom: 8px;
-  color: ${({ theme }) => theme.PALETTE.gray[500]};
-  font-size: ${({ theme }) => theme.FONT_SIZE.small};
+S.CustomerServiceWrapper = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: center;
+  width: 100%;
 `;
 
-export const SummaryValue = styled.strong`
-  font-size: ${({ theme }) => theme.FONT_SIZE.h4};
-  font-weight: ${({ theme }) => theme.FONT_WEIGHT.bold};
+S.CustomerService = styled(Link)`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: ${({ theme }) => theme.FONT_SIZE.h7};
+  font-weight: ${({ theme }) => theme.FONT_WEIGHT.regular};
+  color: ${({ theme }) => theme.PALETTE.text.main};
+  > img,
+  > span {
+    width: 34px;
+    height: 29px;
+    font-size: 29px;
+  }
 `;
+
+export default S;

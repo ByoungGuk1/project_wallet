@@ -2,10 +2,11 @@ import { createBrowserRouter } from "react-router-dom";
 
 import MainLayout from "../components/layout/MainLayout";
 import MainContainer from "../pages/main/MainContainer";
-import AccountContainer from "../pages/account/AccountContainer";
-import TransactionContainer from "../pages/transaction/TransactionContainer";
 import StatisticsContainer from "../pages/statistics/StatisticsContainer";
 import NotFound from "../pages/notfound/NotFound";
+import MyWalletContainer from "../pages/mywallet/MyWalletContainer";
+import GroupWalletContainer from "../pages/groupwallet/GroupWalletContainer";
+import CommunityContainer from "../pages/community/CommunityContainer";
 
 const router = createBrowserRouter([
   {
@@ -13,8 +14,9 @@ const router = createBrowserRouter([
     element: <MainLayout />,
     children: [
       { index: true, element: <MainContainer /> },
-      { path: "accounts", element: <AccountContainer /> },
-      { path: "transactions", element: <TransactionContainer /> },
+      { path: "my-wallet", element: <MyWalletContainer /> },
+      { path: "group-wallet", element: <GroupWalletContainer /> },
+      { path: "community", element: <CommunityContainer /> },
       { path: "statistics", element: <StatisticsContainer /> },
       { path: "events/:eventId", element: <NotFound /> },
       { path: "notifications/:notificationId", element: <NotFound /> },
