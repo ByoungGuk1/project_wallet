@@ -14,7 +14,6 @@ S.Page = styled.div`
 S.FirstSection = styled.section`
   width: 100%;
   height: 450px;
-  background-color: #865a5a;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -24,7 +23,6 @@ S.FirstSection = styled.section`
 S.AdSection = styled.section`
   width: 65%;
   height: 100%;
-  background-color: #f3cdcd;
   display: flex;
   align-items: center;
   justify-content: center;

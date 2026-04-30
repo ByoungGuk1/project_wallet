@@ -1,3 +1,4 @@
+import AdvertisementContainer from "./advertisement/AdvertisementContainer";
 import EtcEvent from "./etcevent/EtcEvent";
 import Information from "./information/Information";
 import MainEvent from "./mainevent/MainEvent";
@@ -5,6 +6,23 @@ import Notification from "./notification/Notification";
 import Report from "./report/Report";
 import S from "./style";
 import SubEvent from "./subevent/SubEvent";
+
+import defaultAdImage from "../../assets/images/main-ad.png";
+
+const adList = [
+  {
+    id: 0,
+    title: "기본 광고 이미지",
+    imgUrl: defaultAdImage,
+    linkUrl: "/",
+  },
+  {
+    id: 1,
+    title: "광고 이미지1",
+    imgUrl: null,
+    linkUrl: "/",
+  },
+];
 
 const data = [
   { id: 1, name: "기본", history: [] },
@@ -16,20 +34,20 @@ const data = [
         id: 1,
         name: "개인 지출 내역",
         calendar: [
-          { date: "24", income: "0", expenses: "974,000" },
-          { date: "25", income: "0", expenses: "974,000" },
-          { date: "26", income: "0", expenses: "974,000" },
-          { date: "27", income: "0", expenses: "974,000" },
-          { date: "28", income: "0", expenses: "974,000" },
-          { date: "29", income: "0", expenses: "974,000" },
-          { date: "30", income: "974,000", expenses: "974,000" },
-          { date: "01", income: "972,000", expenses: "0" },
-          { date: "02", income: "973,000", expenses: "0" },
-          { date: "03", income: "974,000", expenses: "0" },
-          { date: "04", income: "974,000", expenses: "0" },
-          { date: "05", income: "974,000", expenses: "0" },
-          { date: "06", income: "974,000", expenses: "0" },
-          { date: "07", income: "974,000", expenses: "0" },
+          { date: "2026-04-24", income: "0", expenses: "974,000" },
+          { date: "2026-04-25", income: "0", expenses: "974,000" },
+          { date: "2026-04-26", income: "0", expenses: "974,000" },
+          { date: "2026-04-27", income: "0", expenses: "974,000" },
+          { date: "2026-04-28", income: "0", expenses: "974,000" },
+          { date: "2026-04-29", income: "0", expenses: "974,000" },
+          { date: "2026-04-30", income: "974,000", expenses: "974,000" },
+          { date: "2026-05-01", income: "972,000", expenses: "0" },
+          { date: "2026-05-02", income: "973,000", expenses: "0" },
+          { date: "2026-05-03", income: "974,000", expenses: "0" },
+          { date: "2026-05-04", income: "974,000", expenses: "0" },
+          { date: "2026-05-05", income: "974,000", expenses: "0" },
+          { date: "2026-05-06", income: "974,000", expenses: "0" },
+          { date: "2026-05-07", income: "974,000", expenses: "0" },
         ],
       },
       { id: 2, name: "병국 님의 그룹", calendar: [] },
@@ -136,7 +154,9 @@ function MainContainer() {
   return (
     <S.Page>
       <S.FirstSection>
-        <S.AdSection>광고 / 메인 배너 영역</S.AdSection>
+        <S.AdSection>
+          <AdvertisementContainer adList={adList}></AdvertisementContainer>
+        </S.AdSection>
         <S.SigninSection>로그인 영역</S.SigninSection>
       </S.FirstSection>
 

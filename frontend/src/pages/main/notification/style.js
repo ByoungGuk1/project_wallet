@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 export const S = {};
 
-S.NotificationWrapper=styled.div`
+S.NotificationWrapper = styled.div`
   width: 100%;
   height: 100%;
 `;
