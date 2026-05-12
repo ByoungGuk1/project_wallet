@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import app.models  # noqa: F401
 from app.api import (
     account_router,
+    auth_router,
     category_router,
     statistics_router,
     transaction_router,
@@ -31,6 +32,7 @@ def health_check():
     return {"message": "Personal Asset Management API"}
 
 
+app.include_router(auth_router.router)
 app.include_router(account_router.router)
 app.include_router(transaction_router.router)
 app.include_router(category_router.router)
