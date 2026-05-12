@@ -9,6 +9,11 @@ class SignupRequest(BaseModel):
     nickname: str | None = None
 
 
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
 class AuthMemberResponse(BaseModel):
     id: int
     email: str
@@ -17,3 +22,8 @@ class AuthMemberResponse(BaseModel):
     signin_type: SigninType
 
     model_config = {"from_attributes": True}
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
