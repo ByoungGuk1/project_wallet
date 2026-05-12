@@ -24,7 +24,12 @@ def create_access_token(data: dict) -> str:
         minutes=settings.access_token_expire_minutes
     )
 
-    payload.update({"exp": expire})
+    payload.update(
+        {
+            "exp": expire,
+            "type": "access",
+        }
+    )
 
     return jwt.encode(
         payload,

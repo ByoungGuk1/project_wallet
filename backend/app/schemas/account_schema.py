@@ -22,5 +22,4 @@ class AccountUpdate(BaseModel):
 class AccountResponse(AccountBase):
     id: int
     member_id: int
-
     model_config = {"from_attributes": True}

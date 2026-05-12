@@ -25,30 +25,35 @@ def signup(db: Session, data: SignupRequest):
     if existing_member is not None:
         raise HTTPException(status_code=409, detail="이미 사용 중인 이메일입니다.")
 
-    member = Member(
-        email=data.email,
-        nickname=data.nickname,
-        member_type=MemberType.USER,
-        signin_type=SigninType.LOCAL,
-    )
-
-    db.add(member)
-    db.flush()
-
-    local_member = LocalMember(
-        member_id=member.id,
-        password_hash=hash_password(data.password),
-    )
-
-    db.add(local_member)
-
     try:
+        member = Member(
+            email=data.email,
+            nickname=data.nickname,
+            member_type=MemberType.USER,
+            signin_type=SigninType.LOCAL,
+        )
+
+        db.add(member)
+        db.flush()
+
+        local_member = LocalMember(
+            member_id=member.id,
+            password_hash=hash_password(data.password),
+        )
+
+        db.add(local_member)
+
         db.commit()
         db.refresh(member)
+
         return member
+
     except IntegrityError:
         db.rollback()
-        raise HTTPException(status_code=409, detail="회원가입 처리 중 중복 데이터가 발생했습니다.")
+        raise HTTPException(
+            status_code=409,
+            detail="회원가입 처리 중 중복 데이터가 발생했습니다.",
+        )
 
 
 def login(db: Session, data: LoginRequest):
