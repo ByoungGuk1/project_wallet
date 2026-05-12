@@ -1,3 +1,4 @@
+import secrets
 from datetime import datetime, timedelta, timezone
 
 from jose import jwt
@@ -30,3 +31,7 @@ def create_access_token(data: dict) -> str:
         settings.secret_key,
         algorithm=settings.algorithm,
     )
+
+
+def create_refresh_token() -> str:
+    return secrets.token_urlsafe(64)

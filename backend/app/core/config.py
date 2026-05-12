@@ -15,6 +15,11 @@ class Settings(BaseModel):
     access_token_expire_minutes: int = int(
         os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30")
     )
+    redis_host: str = os.getenv("REDIS_HOST", "localhost")
+    redis_port: int = int(os.getenv("REDIS_PORT", "6379"))
+    redis_password: str | None = os.getenv("REDIS_PASSWORD")
+    redis_db: int = int(os.getenv("REDIS_DB", "0"))
+    refresh_token_expire_days: int = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "14"))
 
 
 settings = Settings()

@@ -14,6 +14,10 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class ReissueRequest(BaseModel):
+    refresh_token: str
+
+
 class AuthMemberResponse(BaseModel):
     id: int
     email: str
@@ -26,4 +30,5 @@ class AuthMemberResponse(BaseModel):
 
 class TokenResponse(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str = "bearer"

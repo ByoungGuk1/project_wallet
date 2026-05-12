@@ -7,6 +7,7 @@ from app.models.member import Member
 from app.schemas.auth_schema import (
     AuthMemberResponse,
     LoginRequest,
+    ReissueRequest,
     SignupRequest,
     TokenResponse,
 )
@@ -28,3 +29,7 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
 @router.get("/me", response_model=AuthMemberResponse)
 def get_me(current_member: Member = Depends(get_current_member)):
     return current_member
+
+@router.post("/reissue", response_model=TokenResponse)
+def reissue(data: ReissueRequest, db: Session = Depends(get_db)):
+    return auth_service.reissue_access_token(db, data)
