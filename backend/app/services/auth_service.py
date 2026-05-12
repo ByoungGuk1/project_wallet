@@ -50,6 +50,7 @@ def signup(db: Session, data: SignupRequest):
         db.rollback()
         raise HTTPException(status_code=409, detail="회원가입 처리 중 중복 데이터가 발생했습니다.")
 
+
 def login(db: Session, data: LoginRequest):
     member = (
         db.query(Member)
@@ -98,6 +99,7 @@ def login(db: Session, data: LoginRequest):
         "token_type": "bearer",
     }
 
+
 def reissue_access_token(db: Session, data: ReissueRequest):
     member_id = redis_client.get(f"refresh_token_value:{data.refresh_token}")
 
@@ -121,6 +123,19 @@ def reissue_access_token(db: Session, data: ReissueRequest):
         "refresh_token": data.refresh_token,
         "token_type": "bearer",
     }
+
+
+def logout(member_id: int):
+    member_key = f"refresh_token:{member_id}"
+    refresh_token = redis_client.get(member_key)
+
+    if refresh_token is not None:
+        redis_client.delete(f"refresh_token_value:{refresh_token}")
+
+    redis_client.delete(member_key)
+
+    return {"message": "로그아웃되었습니다."}
+
 
 def _get_refresh_token_ttl_seconds() -> int:
     return settings.refresh_token_expire_days * 24 * 60 * 60
