@@ -1,8 +1,18 @@
-from sqlalchemy import Column, Date, DateTime, ForeignKey, Integer, Numeric, String, Text
+from sqlalchemy import (
+    BigInteger,
+    Column,
+    Date,
+    DateTime,
+    Enum as SAEnum,
+    ForeignKey,
+    Integer,
+    String,
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from app.database.session import Base
+from app.models.enums import TransactionType
 
 
 class Transaction(Base):
@@ -10,13 +20,15 @@ class Transaction(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     account_id = Column(Integer, ForeignKey("accounts.id"), nullable=False)
-    category_id = Column(Integer, ForeignKey("categories.id"), nullable=False)
-    type = Column(String(20), nullable=False)
-    amount = Column(Numeric(15, 2), nullable=False)
-    memo = Column(Text)
+    category_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
+    transaction_type = Column(SAEnum(TransactionType), nullable=False)
+    amount = Column(BigInteger, nullable=False)
     transaction_date = Column(Date, nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    memo = Column(String(255), nullable=True)
+    created_at = Column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     account = relationship("Account", back_populates="transactions")
     category = relationship("Category", back_populates="transactions")

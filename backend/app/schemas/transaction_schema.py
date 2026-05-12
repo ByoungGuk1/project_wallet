@@ -1,28 +1,29 @@
 from datetime import date
-from decimal import Decimal
 
 from pydantic import BaseModel
+
+from app.models.enums import TransactionType
 
 
 class TransactionBase(BaseModel):
     account_id: int
-    category_id: int
-    type: str
-    amount: Decimal
-    memo: str | None = None
+    category_id: int | None = None
+    transaction_type: TransactionType
+    amount: int
     transaction_date: date
+    memo: str | None = None
 
 
 class TransactionCreate(TransactionBase):
-    model_config = {"from_attributes": True}
+    pass
 
 
 class TransactionUpdate(BaseModel):
     category_id: int | None = None
-    type: str | None = None
-    amount: Decimal | None = None
-    memo: str | None = None
+    transaction_type: TransactionType | None = None
+    amount: int | None = None
     transaction_date: date | None = None
+    memo: str | None = None
 
 
 class TransactionResponse(TransactionBase):
