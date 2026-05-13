@@ -26,7 +26,12 @@ def get_transaction(db: Session, transaction_id: int, current_member: Member):
 
 def create_transaction(db: Session, data: TransactionCreate, current_member: Member):
     account = _get_account_by_member_id(db, data.account_id, current_member.id)
-    _validate_category_owner(db, data.category_id, current_member.id)
+    _validate_category(
+        db=db,
+        category_id=data.category_id,
+        member_id=current_member.id,
+        transaction_type=data.transaction_type,
+    )
     _apply_transaction_to_balance(
         account=account,
         transaction_type=data.transaction_type,
@@ -43,15 +48,26 @@ def update_transaction(
 ):
     transaction = get_transaction(db, transaction_id, current_member)
     account = transaction.account
-    if data.category_id is not None:
-        _validate_category_owner(db, data.category_id, current_member.id)
+
+    new_transaction_type = data.transaction_type or transaction.transaction_type
+    new_amount = data.amount if data.amount is not None else transaction.amount
+
+    new_category_id = (
+        data.category_id
+        if "category_id" in data.model_fields_set
+        else transaction.category_id
+    )
+    _validate_category(
+        db=db,
+        category_id=new_category_id,
+        member_id=current_member.id,
+        transaction_type=new_transaction_type,
+    )
     _rollback_transaction_from_balance(
         account=account,
         transaction_type=transaction.transaction_type,
         amount=transaction.amount,
     )
-    new_transaction_type = data.transaction_type or transaction.transaction_type
-    new_amount = data.amount if data.amount is not None else transaction.amount
     _apply_transaction_to_balance(
         account=account,
         transaction_type=new_transaction_type,
@@ -85,17 +101,30 @@ def _get_account_by_member_id(db: Session, account_id: int, member_id: int):
     return account
 
 
-def _validate_category_owner(db: Session, category_id: int | None, member_id: int):
+def _validate_category(
+    db: Session,
+    category_id: int | None,
+    member_id: int,
+    transaction_type: TransactionType,
+):
     if category_id is None:
         return
+
     category = (
         db.query(Category)
         .filter(Category.id == category_id)
         .filter(Category.member_id == member_id)
         .first()
     )
+
     if category is None:
         raise HTTPException(status_code=404, detail="카테고리를 찾을 수 없습니다.")
+
+    if category.category_type.value != transaction_type.value:
+        raise HTTPException(
+            status_code=400,
+            detail="거래 유형과 카테고리 유형이 일치하지 않습니다.",
+        )
 
 
 def _apply_transaction_to_balance(

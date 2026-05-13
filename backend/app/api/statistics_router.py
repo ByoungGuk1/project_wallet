@@ -28,8 +28,12 @@ def get_monthly_statistics(
 
 @router.get("/category")
 def get_category_statistics(
-    type: TransactionType | None = Query(default=None),
+    transaction_type: TransactionType | None = Query(default=None, alias="type"),
     db: Session = Depends(get_db),
     current_member: Member = Depends(get_current_member),
 ):
-    return statistics_service.get_category_statistics(db, current_member, type)
+    return statistics_service.get_category_statistics(
+        db,
+        current_member,
+        transaction_type,
+    )
