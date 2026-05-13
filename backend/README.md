@@ -77,6 +77,27 @@
 - 현재 로그인 사용자 기준 카테고리별 수입/지출 통계
 - `type=INCOME`, `type=EXPENSE` 쿼리 파라미터 기반 카테고리 통계 필터링
 
+## 데이터 관계 요약
+
+```text
+members
+├── local_members
+├── oauth_members
+├── accounts
+│   └── transactions
+└── categories
+```
+
+- `members`는 회원의 공통 정보를 저장합니다.
+- `local_members`는 로컬 로그인 회원의 비밀번호 해시를 저장합니다.
+- `oauth_members`는 OAuth 로그인 확장을 위한 소셜 계정 정보를 저장할 예정입니다.
+- `accounts.member_id`로 계좌 소유자를 구분합니다.
+- `categories.member_id`로 카테고리 소유자를 구분합니다.
+- `transactions`에는 `member_id`를 직접 저장하지 않습니다.
+- 거래 소유자는 `transactions.account_id → accounts.id → accounts.member_id` 관계로 확인합니다.
+- 거래 생성 시 `account_id`와 `category_id`가 모두 현재 로그인 사용자 소유인지 검증합니다.
+- 통계 API는 `transactions`와 `accounts`를 조인하여 현재 로그인 사용자 데이터만 집계합니다.
+
 ## 프로젝트 구조
 
 ```text
@@ -426,15 +447,8 @@ transaction_type과 category_type이 일치해야 함
 
 ## 데이터베이스 확인 명령어
 
-### 테이블 목록 확인
-
 ```bash
 mysql -uroot -p1234 -D wallet_db -e "SHOW TABLES;"
-```
-
-### 주요 데이터 확인
-
-```bash
 mysql -uroot -p1234 -D wallet_db -e "SELECT * FROM members;"
 mysql -uroot -p1234 -D wallet_db -e "SELECT * FROM local_members;"
 mysql -uroot -p1234 -D wallet_db -e "SELECT * FROM accounts;"

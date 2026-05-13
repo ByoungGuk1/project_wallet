@@ -193,6 +193,27 @@ INCOME 거래 + EXPENSE 카테고리
 EXPENSE 거래 + INCOME 카테고리
 ```
 
+## 데이터 관계 요약
+
+```text
+members
+├── local_members
+├── oauth_members
+├── accounts
+│   └── transactions
+└── categories
+```
+
+- `members`는 회원의 공통 정보를 저장합니다.
+- `local_members`는 로컬 로그인 회원의 비밀번호 해시를 저장합니다.
+- `oauth_members`는 OAuth 로그인 확장을 위한 소셜 계정 정보를 저장할 예정입니다.
+- `accounts.member_id`로 계좌 소유자를 구분합니다.
+- `categories.member_id`로 카테고리 소유자를 구분합니다.
+- `transactions`에는 `member_id`를 직접 저장하지 않습니다.
+- 거래 소유자는 `transactions.account_id → accounts.id → accounts.member_id` 관계로 확인합니다.
+- 거래 생성 시 `account_id`와 `category_id`가 모두 현재 로그인 사용자 소유인지 검증합니다.
+- 통계 API는 `transactions`와 `accounts`를 조인하여 현재 로그인 사용자 데이터만 집계합니다.
+
 ## 프론트엔드 구성
 
 프론트엔드는 CRA 기반 React 프로젝트로 구성되어 있으며, React Router를 사용해 주요 페이지 라우팅을 분리했습니다.
@@ -304,10 +325,6 @@ project_wallet/
 │   │   ├── styles/
 │   │   ├── App.js
 │   │   └── index.js
-│   │
-│   ├── .env.example
-│   ├── package.json
-│   └── package-lock.json
 │
 ├── .gitattributes
 ├── .gitignore
@@ -432,20 +449,31 @@ http://localhost:3000
 
 ## 데이터베이스 확인 명령어
 
-### 테이블 목록 확인
-
 ```bash
 mysql -uroot -p1234 -D wallet_db -e "SHOW TABLES;"
-```
-
-### 주요 데이터 확인
-
-```bash
 mysql -uroot -p1234 -D wallet_db -e "SELECT * FROM members;"
 mysql -uroot -p1234 -D wallet_db -e "SELECT * FROM local_members;"
 mysql -uroot -p1234 -D wallet_db -e "SELECT * FROM accounts;"
 mysql -uroot -p1234 -D wallet_db -e "SELECT * FROM categories;"
 mysql -uroot -p1234 -D wallet_db -e "SELECT * FROM transactions;"
+```
+
+### 사용자별 거래 확인
+
+```bash
+mysql -uroot -p1234 -D wallet_db -e "
+SELECT
+    t.id,
+    a.member_id,
+    t.account_id,
+    t.category_id,
+    t.transaction_type,
+    t.amount,
+    t.memo
+FROM transactions t
+JOIN accounts a ON t.account_id = a.id
+ORDER BY t.id;
+"
 ```
 
 ### Redis 확인
