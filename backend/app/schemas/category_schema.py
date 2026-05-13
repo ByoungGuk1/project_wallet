@@ -9,7 +9,7 @@ class CategoryBase(BaseModel):
 
 
 class CategoryCreate(CategoryBase):
-    member_id: int
+    pass
 
 
 class CategoryUpdate(BaseModel):
@@ -20,5 +20,4 @@ class CategoryUpdate(BaseModel):
 class CategoryResponse(CategoryBase):
     id: int
     member_id: int
-
     model_config = {"from_attributes": True}

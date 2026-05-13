@@ -1,31 +1,44 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
+from app.models.member import Member
 from app.repositories import account_repository
 from app.schemas.account_schema import AccountCreate, AccountUpdate
 
 
-def get_accounts(db: Session):
-    return account_repository.find_all(db)
+def get_accounts(db: Session, current_member: Member):
+    return account_repository.find_all_by_member_id(db, current_member.id)
 
 
-def get_account(db: Session, account_id: int):
-    account = account_repository.find_by_id(db, account_id)
+def get_account(db: Session, account_id: int, current_member: Member):
+    account = account_repository.find_by_id_and_member_id(
+        db,
+        account_id,
+        current_member.id,
+    )
+
     if account is None:
-        raise HTTPException(status_code=404, detail="怨꾩쥖瑜?李얠쓣 ???놁뒿?덈떎.")
+        raise HTTPException(status_code=404, detail="계좌를 찾을 수 없습니다.")
+
     return account
 
 
-def create_account(db: Session, data: AccountCreate):
-    return account_repository.create(db, data)
+def create_account(db: Session, data: AccountCreate, current_member: Member):
+    return account_repository.create(db, data, current_member.id)
 
 
-def update_account(db: Session, account_id: int, data: AccountUpdate):
-    account = get_account(db, account_id)
+def update_account(
+    db: Session,
+    account_id: int,
+    data: AccountUpdate,
+    current_member: Member,
+):
+    account = get_account(db, account_id, current_member)
     return account_repository.update(db, account, data)
 
 
-def delete_account(db: Session, account_id: int):
-    account = get_account(db, account_id)
+def delete_account(db: Session, account_id: int, current_member: Member):
+    account = get_account(db, account_id, current_member)
     account_repository.delete(db, account)
-    return {"message": "怨꾩쥖媛 ??젣?섏뿀?듬땲??"}
+
+    return {"message": "계좌가 삭제되었습니다."}

@@ -24,7 +24,6 @@ class AuthMemberResponse(BaseModel):
     nickname: str | None
     member_type: MemberType
     signin_type: SigninType
-
     model_config = {"from_attributes": True}
 
 

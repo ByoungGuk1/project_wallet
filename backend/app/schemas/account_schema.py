@@ -9,7 +9,7 @@ class AccountBase(BaseModel):
 
 
 class AccountCreate(AccountBase):
-    member_id: int
+    pass
 
 
 class AccountUpdate(BaseModel):
