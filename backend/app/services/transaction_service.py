@@ -1,6 +1,7 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
+from app.core import error_messages
 from app.models.account import Account
 from app.models.category import Category
 from app.models.enums import TransactionType
@@ -20,7 +21,7 @@ def get_transaction(db: Session, transaction_id: int, current_member: Member):
         current_member.id,
     )
     if transaction is None:
-        raise HTTPException(status_code=404, detail="거래 내역을 찾을 수 없습니다.")
+        raise HTTPException(status_code=404, detail=error_messages.TRANSACTION_NOT_FOUND)
     return transaction
 
 
@@ -97,7 +98,7 @@ def _get_account_by_member_id(db: Session, account_id: int, member_id: int):
         .first()
     )
     if account is None:
-        raise HTTPException(status_code=404, detail="계좌를 찾을 수 없습니다.")
+        raise HTTPException(status_code=404, detail=error_messages.ACCOUNT_NOT_FOUND)
     return account
 
 
@@ -118,12 +119,12 @@ def _validate_category(
     )
 
     if category is None:
-        raise HTTPException(status_code=404, detail="카테고리를 찾을 수 없습니다.")
+        raise HTTPException(status_code=404, detail=error_messages.CATEGORY_NOT_FOUND)
 
     if category.category_type.value != transaction_type.value:
         raise HTTPException(
             status_code=400,
-            detail="거래 유형과 카테고리 유형이 일치하지 않습니다.",
+            detail=error_messages.INVALID_TRANSACTION_CATEGORY_TYPE,
         )
 
 
@@ -133,14 +134,14 @@ def _apply_transaction_to_balance(
     amount: int,
 ):
     if amount <= 0:
-        raise HTTPException(status_code=400, detail="거래 금액은 0보다 커야 합니다.")
+        raise HTTPException(status_code=400, detail=error_messages.INVALID_TRANSACTION_AMOUNTRY_TYPE)
 
     if transaction_type == TransactionType.INCOME:
         account.balance += amount
     elif transaction_type == TransactionType.EXPENSE:
         account.balance -= amount
     else:
-        raise HTTPException(status_code=400, detail="지원하지 않는 거래 유형입니다.")
+        raise HTTPException(status_code=400, detail=error_messages.UNSUPPORTED_TRANSACTION_TYPE)
 
 
 def _rollback_transaction_from_balance(
@@ -153,4 +154,4 @@ def _rollback_transaction_from_balance(
     elif transaction_type == TransactionType.EXPENSE:
         account.balance += amount
     else:
-        raise HTTPException(status_code=400, detail="지원하지 않는 거래 유형입니다.")
+        raise HTTPException(status_code=400, detail=error_messages.UNSUPPORTED_TRANSACTION_TYPE)

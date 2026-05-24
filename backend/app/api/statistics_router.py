@@ -5,12 +5,17 @@ from app.database.session import get_db
 from app.dependencies.auth_dependency import get_current_member
 from app.models.enums import TransactionType
 from app.models.member import Member
+from app.schemas.statistics_schema import (
+    CategoryStatisticsResponse,
+    MonthlyStatisticsResponse,
+    SummaryResponse,
+)
 from app.services import statistics_service
 
 router = APIRouter(prefix="/api/statistics", tags=["Statistics"])
 
 
-@router.get("/summary")
+@router.get("/summary", response_model=SummaryResponse)
 def get_summary(
     db: Session = Depends(get_db),
     current_member: Member = Depends(get_current_member),
@@ -18,7 +23,7 @@ def get_summary(
     return statistics_service.get_summary(db, current_member)
 
 
-@router.get("/monthly")
+@router.get("/monthly", response_model=list[MonthlyStatisticsResponse])
 def get_monthly_statistics(
     db: Session = Depends(get_db),
     current_member: Member = Depends(get_current_member),
@@ -26,7 +31,7 @@ def get_monthly_statistics(
     return statistics_service.get_monthly_statistics(db, current_member)
 
 
-@router.get("/category")
+@router.get("/category", response_model=list[CategoryStatisticsResponse])
 def get_category_statistics(
     transaction_type: TransactionType | None = Query(default=None, alias="type"),
     db: Session = Depends(get_db),

@@ -8,11 +8,11 @@ from app.models.member import Member
 from app.schemas.auth_schema import (
     AuthMemberResponse,
     LoginRequest,
-    MessageResponse,
     ReissueRequest,
     SignupRequest,
     TokenResponse,
 )
+from app.schemas.common_schema import MessageResponse
 from app.services import auth_service
 
 

@@ -1,20 +1,21 @@
-from decimal import Decimal
-
 from pydantic import BaseModel
+
+from app.models.enums import TransactionType
 
 
 class SummaryResponse(BaseModel):
-    total_balance: Decimal
-    monthly_income: Decimal
-    monthly_expense: Decimal
+    total_balance: int
+    monthly_income: int
+    monthly_expense: int
 
 
 class MonthlyStatisticsResponse(BaseModel):
     month: str
-    income: Decimal
-    expense: Decimal
+    income: int
+    expense: int
 
 
 class CategoryStatisticsResponse(BaseModel):
-    category_name: str
-    total_amount: Decimal
+    category: str
+    category_type: TransactionType
+    amount: int

@@ -1,6 +1,7 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
+from app.core import error_messages
 from app.models.member import Member
 from app.repositories import account_repository
 from app.schemas.account_schema import AccountCreate, AccountUpdate
@@ -18,7 +19,7 @@ def get_account(db: Session, account_id: int, current_member: Member):
     )
 
     if account is None:
-        raise HTTPException(status_code=404, detail="계좌를 찾을 수 없습니다.")
+        raise HTTPException(status_code=404, detail=error_messages.ACCOUNT_NOT_FOUND)
 
     return account
 
