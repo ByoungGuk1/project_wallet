@@ -1,7 +1,8 @@
 import secrets
 from datetime import datetime, timedelta, timezone
 
-from jose import jwt
+from fastapi import HTTPException
+from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 from app.core.config import settings
@@ -40,3 +41,32 @@ def create_access_token(data: dict) -> str:
 
 def create_refresh_token() -> str:
     return secrets.token_urlsafe(64)
+
+
+def get_access_token_ttl_seconds(token: str) -> int:
+    try:
+        payload = jwt.decode(
+            token,
+            settings.secret_key,
+            algorithms=[settings.algorithm],
+        )
+    except JWTError:
+        raise HTTPException(status_code=401, detail="유효하지 않은 토큰입니다.")
+
+    token_type = payload.get("type")
+    if token_type != "access":
+        raise HTTPException(status_code=401, detail="유효하지 않은 토큰입니다.")
+
+    expire_timestamp = payload.get("exp")
+    if expire_timestamp is None:
+        raise HTTPException(status_code=401, detail="유효하지 않은 토큰입니다.")
+
+    expire_datetime = datetime.fromtimestamp(expire_timestamp, tz=timezone.utc)
+    now = datetime.now(timezone.utc)
+
+    ttl_seconds = int((expire_datetime - now).total_seconds())
+
+    if ttl_seconds <= 0:
+        raise HTTPException(status_code=401, detail="만료된 토큰입니다.")
+
+    return ttl_seconds

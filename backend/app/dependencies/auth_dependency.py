@@ -4,8 +4,10 @@ from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.core.redis_client import redis_client
 from app.database.session import get_db
 from app.models.member import Member
+
 
 bearer_scheme = HTTPBearer()
 
@@ -15,6 +17,9 @@ def get_current_member(
     db: Session = Depends(get_db),
 ):
     token = credentials.credentials
+
+    if redis_client.exists(f"blacklist:access_token:{token}"):
+        raise HTTPException(status_code=401, detail="로그아웃된 토큰입니다.")
 
     try:
         payload = jwt.decode(

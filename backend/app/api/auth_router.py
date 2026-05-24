@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from app.database.session import get_db
@@ -16,6 +17,7 @@ from app.services import auth_service
 
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
+bearer_scheme = HTTPBearer()
 
 
 @router.post("/signup", response_model=AuthMemberResponse)
@@ -34,8 +36,11 @@ def reissue(data: ReissueRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/logout", response_model=MessageResponse)
-def logout(current_member: Member = Depends(get_current_member)):
-    return auth_service.logout(current_member.id)
+def logout(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+    current_member: Member = Depends(get_current_member),
+):
+    return auth_service.logout(current_member.id, credentials.credentials)
 
 
 @router.get("/me", response_model=AuthMemberResponse)

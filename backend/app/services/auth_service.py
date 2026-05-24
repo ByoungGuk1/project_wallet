@@ -7,6 +7,7 @@ from app.core.redis_client import redis_client
 from app.core.security import (
     create_access_token,
     create_refresh_token,
+    get_access_token_ttl_seconds,
     hash_password,
     verify_password,
 )
@@ -130,7 +131,7 @@ def reissue_access_token(db: Session, data: ReissueRequest):
     }
 
 
-def logout(member_id: int):
+def logout(member_id: int, access_token: str):
     member_key = f"refresh_token:{member_id}"
     refresh_token = redis_client.get(member_key)
 
@@ -138,6 +139,13 @@ def logout(member_id: int):
         redis_client.delete(f"refresh_token_value:{refresh_token}")
 
     redis_client.delete(member_key)
+
+    access_token_ttl_seconds = get_access_token_ttl_seconds(access_token)
+    redis_client.setex(
+        f"blacklist:access_token:{access_token}",
+        access_token_ttl_seconds,
+        str(member_id),
+    )
 
     return {"message": "로그아웃되었습니다."}
 
