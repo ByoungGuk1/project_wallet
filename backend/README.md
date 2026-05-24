@@ -8,19 +8,19 @@
 
 ## 기술 스택
 
-| 구분 | 기술 |
-| --- | --- |
-| Language | Python 3.12 |
-| Framework | FastAPI |
-| Server | Uvicorn |
-| Database | MySQL |
-| Database Access | SQLAlchemy ORM / Native SQL |
-| Auth | JWT |
-| Token Storage | Redis |
-| Password Hashing | passlib / bcrypt |
-| Validation | Pydantic |
-| Environment | python-dotenv |
-| API Docs | Swagger UI |
+| 구분             | 기술                        |
+| ---------------- | --------------------------- |
+| Language         | Python 3.12                 |
+| Framework        | FastAPI                     |
+| Server           | Uvicorn                     |
+| Database         | MySQL                       |
+| Database Access  | SQLAlchemy ORM / Native SQL |
+| Auth             | JWT                         |
+| Token Storage    | Redis                       |
+| Password Hashing | passlib / bcrypt            |
+| Validation       | Pydantic                    |
+| Environment      | python-dotenv               |
+| API Docs         | Swagger UI                  |
 
 ## 주요 기능
 
@@ -33,7 +33,11 @@
 - Access Token 기반 현재 로그인 사용자 조회
 - Redis 기반 Refresh Token 저장
 - Refresh Token 기반 Access Token 재발급
+- Refresh Token Rotation 적용
+- 토큰 재발급 시 기존 Refresh Token 폐기
 - 로그아웃 시 Redis Refresh Token 삭제
+- 로그아웃 시 Access Token blacklist 등록
+- 로그아웃된 Access Token 재사용 차단
 - Access Token type 검증
 - 현재 로그인 사용자 기준 API 접근 제어
 
@@ -325,7 +329,10 @@ POST /api/auth/reissue
 Refresh Token으로 Redis 조회
 → member_id 확인
 → 저장된 Refresh Token과 비교
+→ 기존 Refresh Token 폐기
 → 새 Access Token 발급
+→ 새 Refresh Token 발급
+→ Redis에 새 Refresh Token 저장
 ```
 
 ### 로그아웃
@@ -346,29 +353,31 @@ Authorization: Bearer <access_token>
 현재 사용자 확인
 → Redis refresh_token:{member_id} 삭제
 → Redis refresh_token_value:{refresh_token} 삭제
+→ Access Token의 남은 만료 시간 계산
+→ Redis blacklist:access_token:{access_token} 저장
 ```
 
 ## API 목록
 
 ### Auth API
 
-| Method | URL | 인증 | 설명 |
-| --- | --- | --- | --- |
-| POST | `/api/auth/signup` | 불필요 | 로컬 회원가입 |
-| POST | `/api/auth/login` | 불필요 | 로컬 로그인 및 토큰 발급 |
-| GET | `/api/auth/me` | 필요 | 현재 로그인 사용자 조회 |
-| POST | `/api/auth/reissue` | 불필요 | Access Token 재발급 |
-| POST | `/api/auth/logout` | 필요 | 로그아웃 |
+| Method | URL                 | 인증   | 설명                                   |
+| ------ | ------------------- | ------ | -------------------------------------- |
+| POST   | `/api/auth/signup`  | 불필요 | 로컬 회원가입                          |
+| POST   | `/api/auth/login`   | 불필요 | 로컬 로그인 및 토큰 발급               |
+| GET    | `/api/auth/me`      | 필요   | 현재 로그인 사용자 조회                |
+| POST   | `/api/auth/reissue` | 불필요 | Refresh Token 기반 Access Token 재발급 |
+| POST   | `/api/auth/logout`  | 필요   | 로그아웃                               |
 
 ### Account API
 
-| Method | URL | 인증 | 설명 |
-| --- | --- | --- | --- |
-| GET | `/api/accounts` | 필요 | 현재 사용자 계좌 목록 조회 |
-| GET | `/api/accounts/{account_id}` | 필요 | 현재 사용자 계좌 상세 조회 |
-| POST | `/api/accounts` | 필요 | 현재 사용자 계좌 등록 |
-| PATCH | `/api/accounts/{account_id}` | 필요 | 현재 사용자 계좌 수정 |
-| DELETE | `/api/accounts/{account_id}` | 필요 | 현재 사용자 계좌 삭제 |
+| Method | URL                          | 인증 | 설명                       |
+| ------ | ---------------------------- | ---- | -------------------------- |
+| GET    | `/api/accounts`              | 필요 | 현재 사용자 계좌 목록 조회 |
+| GET    | `/api/accounts/{account_id}` | 필요 | 현재 사용자 계좌 상세 조회 |
+| POST   | `/api/accounts`              | 필요 | 현재 사용자 계좌 등록      |
+| PATCH  | `/api/accounts/{account_id}` | 필요 | 현재 사용자 계좌 수정      |
+| DELETE | `/api/accounts/{account_id}` | 필요 | 현재 사용자 계좌 삭제      |
 
 계좌 생성 요청 예시:
 
@@ -385,13 +394,13 @@ Authorization: Bearer <access_token>
 
 ### Category API
 
-| Method | URL | 인증 | 설명 |
-| --- | --- | --- | --- |
-| GET | `/api/categories` | 필요 | 현재 사용자 카테고리 목록 조회 |
-| GET | `/api/categories/{category_id}` | 필요 | 현재 사용자 카테고리 상세 조회 |
-| POST | `/api/categories` | 필요 | 현재 사용자 카테고리 등록 |
-| PATCH | `/api/categories/{category_id}` | 필요 | 현재 사용자 카테고리 수정 |
-| DELETE | `/api/categories/{category_id}` | 필요 | 현재 사용자 카테고리 삭제 |
+| Method | URL                             | 인증 | 설명                           |
+| ------ | ------------------------------- | ---- | ------------------------------ |
+| GET    | `/api/categories`               | 필요 | 현재 사용자 카테고리 목록 조회 |
+| GET    | `/api/categories/{category_id}` | 필요 | 현재 사용자 카테고리 상세 조회 |
+| POST   | `/api/categories`               | 필요 | 현재 사용자 카테고리 등록      |
+| PATCH  | `/api/categories/{category_id}` | 필요 | 현재 사용자 카테고리 수정      |
+| DELETE | `/api/categories/{category_id}` | 필요 | 현재 사용자 카테고리 삭제      |
 
 카테고리 생성 요청 예시:
 
@@ -406,13 +415,13 @@ Authorization: Bearer <access_token>
 
 ### Transaction API
 
-| Method | URL | 인증 | 설명 |
-| --- | --- | --- | --- |
-| GET | `/api/transactions` | 필요 | 현재 사용자 거래 목록 조회 |
-| GET | `/api/transactions/{transaction_id}` | 필요 | 현재 사용자 거래 상세 조회 |
-| POST | `/api/transactions` | 필요 | 현재 사용자 거래 등록 |
-| PATCH | `/api/transactions/{transaction_id}` | 필요 | 현재 사용자 거래 수정 |
-| DELETE | `/api/transactions/{transaction_id}` | 필요 | 현재 사용자 거래 삭제 |
+| Method | URL                                  | 인증 | 설명                       |
+| ------ | ------------------------------------ | ---- | -------------------------- |
+| GET    | `/api/transactions`                  | 필요 | 현재 사용자 거래 목록 조회 |
+| GET    | `/api/transactions/{transaction_id}` | 필요 | 현재 사용자 거래 상세 조회 |
+| POST   | `/api/transactions`                  | 필요 | 현재 사용자 거래 등록      |
+| PATCH  | `/api/transactions/{transaction_id}` | 필요 | 현재 사용자 거래 수정      |
+| DELETE | `/api/transactions/{transaction_id}` | 필요 | 현재 사용자 거래 삭제      |
 
 거래 생성 요청 예시:
 
@@ -437,13 +446,13 @@ transaction_type과 category_type이 일치해야 함
 
 ### Statistics API
 
-| Method | URL | 인증 | 설명 |
-| --- | --- | --- | --- |
-| GET | `/api/statistics/summary` | 필요 | 현재 사용자 요약 통계 조회 |
-| GET | `/api/statistics/monthly` | 필요 | 현재 사용자 월별 수입/지출 통계 조회 |
-| GET | `/api/statistics/category` | 필요 | 현재 사용자 카테고리별 수입/지출 통계 조회 |
-| GET | `/api/statistics/category?type=INCOME` | 필요 | 현재 사용자 수입 카테고리 통계 조회 |
-| GET | `/api/statistics/category?type=EXPENSE` | 필요 | 현재 사용자 지출 카테고리 통계 조회 |
+| Method | URL                                     | 인증 | 설명                                       |
+| ------ | --------------------------------------- | ---- | ------------------------------------------ |
+| GET    | `/api/statistics/summary`               | 필요 | 현재 사용자 요약 통계 조회                 |
+| GET    | `/api/statistics/monthly`               | 필요 | 현재 사용자 월별 수입/지출 통계 조회       |
+| GET    | `/api/statistics/category`              | 필요 | 현재 사용자 카테고리별 수입/지출 통계 조회 |
+| GET    | `/api/statistics/category?type=INCOME`  | 필요 | 현재 사용자 수입 카테고리 통계 조회        |
+| GET    | `/api/statistics/category?type=EXPENSE` | 필요 | 현재 사용자 지출 카테고리 통계 조회        |
 
 ## 데이터베이스 확인 명령어
 
@@ -483,13 +492,27 @@ docker exec -it redis-dev redis-cli
 ```redis
 AUTH 1234
 KEYS refresh_token*
+KEYS blacklist:access_token*
 ```
 
 Refresh Token 저장 구조:
 
 ```text
-refresh_token:{member_id} -> refresh_token
+refresh_token:{member_id} -> latest_refresh_token
 refresh_token_value:{refresh_token} -> member_id
+```
+
+Access Token blacklist 저장 구조:
+
+```text
+blacklist:access_token:{access_token} -> member_id
+```
+
+Redis TTL 확인:
+
+```redis
+TTL refresh_token:{member_id}
+TTL blacklist:access_token:{access_token}
 ```
 
 ## 현재 개발 상태
@@ -503,9 +526,14 @@ refresh_token_value:{refresh_token} -> member_id
 - 로컬 로그인 API
 - bcrypt 비밀번호 해싱
 - JWT Access Token 발급 및 검증
-- Redis Refresh Token 저장
-- Access Token 재발급 API
+- Redis 기반 Refresh Token 저장
+- Refresh Token 기반 Access Token 재발급 API
+- Refresh Token Rotation 적용
+- 토큰 재발급 시 기존 Refresh Token 폐기
 - 로그아웃 API
+- 로그아웃 시 Redis Refresh Token 삭제
+- 로그아웃 시 Access Token blacklist 등록
+- 로그아웃된 Access Token 재사용 차단
 - 현재 로그인 사용자 조회 API
 - 계좌 CRUD API
 - 카테고리 CRUD API
@@ -521,7 +549,6 @@ refresh_token_value:{refresh_token} -> member_id
 ### 진행 예정
 
 - OAuth 로그인 API
-- Access Token blacklist 적용 여부 검토
 - 콘텐츠 API 구현
 - 광고 / 이벤트 / 공지사항 / 정보성 게시글 API 연동
 - 프론트엔드 API 연동
