@@ -1,6 +1,7 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
+from app.core import error_messages
 from app.models.member import Member
 from app.repositories import category_repository
 from app.schemas.category_schema import CategoryCreate, CategoryUpdate
@@ -17,7 +18,7 @@ def get_category(db: Session, category_id: int, current_member: Member):
         current_member.id,
     )
     if category is None:
-        raise HTTPException(status_code=404, detail="카테고리를 찾을 수 없습니다.")
+        raise HTTPException(status_code=404, detail=error_messages.CATEGORY_NOT_FOUND)
     return category
 
 

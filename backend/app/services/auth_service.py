@@ -11,6 +11,7 @@ from app.core.security import (
     hash_password,
     verify_password,
 )
+from app.core import error_messages
 from app.models.enums import MemberType, SigninType
 from app.models.member import LocalMember, Member
 from app.schemas.auth_schema import LoginRequest, ReissueRequest, SignupRequest
@@ -24,7 +25,7 @@ def signup(db: Session, data: SignupRequest):
     )
 
     if existing_member is not None:
-        raise HTTPException(status_code=409, detail="이미 사용 중인 이메일입니다.")
+        raise HTTPException(status_code=409, detail=error_messages.DUPLICATED_EMAIL)
 
     try:
         member = Member(
@@ -53,7 +54,7 @@ def signup(db: Session, data: SignupRequest):
         db.rollback()
         raise HTTPException(
             status_code=409,
-            detail="회원가입 처리 중 중복 데이터가 발생했습니다.",
+           detail=error_messages.SIGNUP_DUPLICATED_DATA
         )
 
 
@@ -67,13 +68,13 @@ def login(db: Session, data: LoginRequest):
     if member is None:
         raise HTTPException(
             status_code=401,
-            detail="이메일 또는 비밀번호가 올바르지 않습니다.",
+            detail=error_messages.INVALID_LOGIN_CREDENTIALS
         )
 
     if member.signin_type != SigninType.LOCAL:
         raise HTTPException(
             status_code=400,
-            detail="로컬 로그인 회원이 아닙니다.",
+            detail=error_messages.NOT_LOCAL_MEMBER
         )
 
     local_member = (
@@ -85,13 +86,13 @@ def login(db: Session, data: LoginRequest):
     if local_member is None:
         raise HTTPException(
             status_code=401,
-            detail="이메일 또는 비밀번호가 올바르지 않습니다.",
+            detail=error_messages.INVALID_LOGIN_CREDENTIALS
         )
 
     if not verify_password(data.password, local_member.password_hash):
         raise HTTPException(
             status_code=401,
-            detail="이메일 또는 비밀번호가 올바르지 않습니다.",
+            detail=error_messages.INVALID_LOGIN_CREDENTIALS
         )
 
     access_token = _create_member_access_token(member)
@@ -110,17 +111,17 @@ def reissue_access_token(db: Session, data: ReissueRequest):
     member_id = redis_client.get(f"refresh_token_value:{data.refresh_token}")
 
     if member_id is None:
-        raise HTTPException(status_code=401, detail="유효하지 않은 Refresh Token입니다.")
+        raise HTTPException(status_code=401, detail=error_messages.INVALID_REFRESH_TOKEN)
 
     stored_refresh_token = redis_client.get(f"refresh_token:{member_id}")
 
     if stored_refresh_token is None or stored_refresh_token != data.refresh_token:
-        raise HTTPException(status_code=401, detail="유효하지 않은 Refresh Token입니다.")
+        raise HTTPException(status_code=401, detail=error_messages.INVALID_REFRESH_TOKEN)
 
     member = db.query(Member).filter(Member.id == int(member_id)).first()
 
     if member is None:
-        raise HTTPException(status_code=401, detail="회원을 찾을 수 없습니다.")
+        raise HTTPException(status_code=401, detail=error_messages.MEMBER_NOT_FOUND)
 
     access_token = _create_member_access_token(member)
     new_refresh_token = create_refresh_token()
