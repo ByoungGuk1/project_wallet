@@ -5,6 +5,7 @@ from app.database.session import get_db
 from app.dependencies.auth_dependency import get_current_member
 from app.models.member import Member
 from app.schemas.account_schema import AccountCreate, AccountResponse, AccountUpdate
+from app.schemas.common_schema import MessageResponse
 from app.services import account_service
 
 router = APIRouter(prefix="/api/accounts", tags=["Account"])
@@ -46,7 +47,7 @@ def update_account(
     return account_service.update_account(db, account_id, data, current_member)
 
 
-@router.delete("/{account_id}")
+@router.delete("/{account_id}", response_model=MessageResponse)
 def delete_account(
     account_id: int,
     db: Session = Depends(get_db),

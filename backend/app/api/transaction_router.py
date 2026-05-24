@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.database.session import get_db
 from app.dependencies.auth_dependency import get_current_member
 from app.models.member import Member
+from app.schemas.common_schema import MessageResponse
 from app.schemas.transaction_schema import (
     TransactionCreate,
     TransactionResponse,
@@ -55,7 +56,7 @@ def update_transaction(
     )
 
 
-@router.delete("/{transaction_id}")
+@router.delete("/{transaction_id}", response_model=MessageResponse)
 def delete_transaction(
     transaction_id: int,
     db: Session = Depends(get_db),
