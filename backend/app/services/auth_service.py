@@ -123,10 +123,13 @@ def reissue_access_token(db: Session, data: ReissueRequest):
         raise HTTPException(status_code=401, detail="회원을 찾을 수 없습니다.")
 
     access_token = _create_member_access_token(member)
+    new_refresh_token = create_refresh_token()
+
+    _save_refresh_token(member.id, new_refresh_token)
 
     return {
         "access_token": access_token,
-        "refresh_token": data.refresh_token,
+        "refresh_token": new_refresh_token,
         "token_type": "bearer",
     }
 
