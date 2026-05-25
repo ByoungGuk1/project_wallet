@@ -1,10 +1,12 @@
 # Backend
 
-개인 자산 관리 서비스의 FastAPI 기반 백엔드 서버입니다.
+개인 자산 관리 서비스 `project_wallet`의 FastAPI 기반 백엔드 서버입니다.
 
-회원가입, 로그인, JWT 인증, Redis 기반 Refresh Token 관리, 계좌·카테고리·거래·통계 API를 제공합니다.
+백엔드는 회원 인증, 사용자별 계좌 관리, 카테고리 관리, 거래 내역 관리, 통계 조회 기능을 제공합니다.
 
-계좌, 카테고리, 거래, 통계 데이터는 현재 로그인 사용자 기준으로 제한되며, 거래 등록·수정·삭제 시 계좌 잔액 정합성을 백엔드에서 처리합니다.
+현재 구현은 현재 로그인 사용자 기준 데이터 접근 제어, JWT 기반 인증, Redis 기반 Refresh Token 관리, 거래 내역과 계좌 잔액 정합성 유지를 중심으로 구성되어 있습니다.
+
+---
 
 ## 기술 스택
 
@@ -30,6 +32,7 @@
 - 로컬 로그인
 - bcrypt 기반 비밀번호 해싱
 - JWT Access Token 발급
+- Access Token type 검증
 - Access Token 기반 현재 로그인 사용자 조회
 - Redis 기반 Refresh Token 저장
 - Refresh Token 기반 Access Token 재발급
@@ -38,8 +41,8 @@
 - 로그아웃 시 Redis Refresh Token 삭제
 - 로그아웃 시 Access Token blacklist 등록
 - 로그아웃된 Access Token 재사용 차단
-- Access Token type 검증
 - 현재 로그인 사용자 기준 API 접근 제어
+- 인증 예외 메시지 상수화
 
 ### 계좌 관리
 
@@ -71,6 +74,7 @@
 - 현재 로그인 사용자 계좌에 속한 거래만 접근 가능
 - 거래 등록/수정/삭제 시 계좌 잔액 자동 반영
 - 거래 유형과 카테고리 유형 일치 검증
+- 거래 금액이 0 이하인 경우 예외 처리
 
 ### 통계
 
@@ -80,6 +84,9 @@
 - 현재 로그인 사용자 기준 월별 수입/지출 통계
 - 현재 로그인 사용자 기준 카테고리별 수입/지출 통계
 - `type=INCOME`, `type=EXPENSE` 쿼리 파라미터 기반 카테고리 통계 필터링
+- 통계 API 응답 모델 적용
+
+---
 
 ## 데이터 관계 요약
 
@@ -102,6 +109,96 @@ members
 - 거래 생성 시 `account_id`와 `category_id`가 모두 현재 로그인 사용자 소유인지 검증합니다.
 - 통계 API는 `transactions`와 `accounts`를 조인하여 현재 로그인 사용자 데이터만 집계합니다.
 
+---
+
+## 인증 구조 요약
+
+### Access Token
+
+Access Token은 JWT로 발급합니다.
+
+Payload에는 현재 사용자 식별과 토큰 타입 검증에 필요한 값을 포함합니다.
+
+```text
+sub: 회원 ID
+email: 사용자 이메일
+member_type: 회원 유형
+type: access
+exp: 만료 시간
+```
+
+인증이 필요한 API는 `Authorization` 헤더에 Access Token을 전달해야 합니다.
+
+```http
+Authorization: Bearer <access_token>
+```
+
+Access Token 검증 기준:
+
+- JWT 서명 검증
+- 만료 시간 검증
+- `type=access` 확인
+- Redis blacklist 등록 여부 확인
+- `sub` 기준 회원 조회
+
+### Refresh Token
+
+Refresh Token은 JWT가 아니라 `secrets.token_urlsafe(64)`로 생성한 랜덤 문자열입니다.
+
+Redis 저장 구조:
+
+```text
+refresh_token:{member_id} -> latest_refresh_token
+refresh_token_value:{refresh_token} -> member_id
+```
+
+Refresh Token TTL:
+
+```text
+REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
+```
+
+### Refresh Token Rotation
+
+`POST /api/auth/reissue` 호출 시 기존 Refresh Token을 그대로 재사용하지 않습니다.
+
+처리 흐름:
+
+```text
+Refresh Token 수신
+→ refresh_token_value:{refresh_token}으로 member_id 조회
+→ refresh_token:{member_id}에 저장된 최신 Refresh Token과 비교
+→ 기존 Refresh Token reverse key 삭제
+→ 새 Access Token 발급
+→ 새 Refresh Token 발급
+→ 새 Refresh Token Redis 저장
+→ 새 Access Token과 새 Refresh Token 반환
+```
+
+### Logout + Access Token Blacklist
+
+로그아웃 시 Refresh Token만 삭제하지 않고, Access Token도 Redis blacklist에 저장합니다.
+
+처리 흐름:
+
+```text
+현재 사용자 확인
+→ Redis refresh_token:{member_id} 삭제
+→ Redis refresh_token_value:{refresh_token} 삭제
+→ Access Token의 남은 만료 시간 계산
+→ Redis blacklist:access_token:{access_token} 저장
+```
+
+Access Token blacklist 저장 구조:
+
+```text
+blacklist:access_token:{access_token} -> member_id
+```
+
+blacklist TTL은 Access Token의 남은 만료 시간으로 설정합니다.
+
+---
+
 ## 프로젝트 구조
 
 ```text
@@ -116,6 +213,7 @@ backend/
 │   │
 │   ├── core/
 │   │   ├── config.py
+│   │   ├── error_messages.py
 │   │   ├── redis_client.py
 │   │   └── security.py
 │   │
@@ -144,6 +242,8 @@ backend/
 │   │   ├── account_schema.py
 │   │   ├── auth_schema.py
 │   │   ├── category_schema.py
+│   │   ├── common_schema.py
+│   │   ├── statistics_schema.py
 │   │   └── transaction_schema.py
 │   │
 │   ├── services/
@@ -154,6 +254,9 @@ backend/
 │   │   └── transaction_service.py
 │   │
 │   └── main.py
+│
+├── docs/
+│   └── auth-plan.md
 │
 ├── .env.example
 ├── requirements.txt
@@ -234,140 +337,17 @@ uvicorn app.main:app --reload
 http://localhost:8000/docs
 ```
 
-## 인증 흐름
-
-### 회원가입
-
-```text
-POST /api/auth/signup
-```
-
-요청 예시:
-
-```json
-{
-  "email": "user@example.com",
-  "password": "1234",
-  "nickname": "테스트유저"
-}
-```
-
-처리 흐름:
-
-```text
-이메일 중복 확인
-→ 비밀번호 bcrypt 해싱
-→ members 저장
-→ local_members 저장
-```
-
-### 로그인
-
-```text
-POST /api/auth/login
-```
-
-요청 예시:
-
-```json
-{
-  "email": "user@example.com",
-  "password": "1234"
-}
-```
-
-응답 예시:
-
-```json
-{
-  "access_token": "JWT_ACCESS_TOKEN",
-  "refresh_token": "REFRESH_TOKEN",
-  "token_type": "bearer"
-}
-```
-
-처리 흐름:
-
-```text
-이메일 조회
-→ 로컬 회원 여부 확인
-→ 비밀번호 검증
-→ Access Token 발급
-→ Refresh Token 생성
-→ Redis 저장
-```
-
-### 현재 로그인 사용자 조회
-
-```text
-GET /api/auth/me
-```
-
-요청 헤더:
-
-```http
-Authorization: Bearer <access_token>
-```
-
-### 토큰 재발급
-
-```text
-POST /api/auth/reissue
-```
-
-요청 예시:
-
-```json
-{
-  "refresh_token": "REFRESH_TOKEN"
-}
-```
-
-처리 흐름:
-
-```text
-Refresh Token으로 Redis 조회
-→ member_id 확인
-→ 저장된 Refresh Token과 비교
-→ 기존 Refresh Token 폐기
-→ 새 Access Token 발급
-→ 새 Refresh Token 발급
-→ Redis에 새 Refresh Token 저장
-```
-
-### 로그아웃
-
-```text
-POST /api/auth/logout
-```
-
-요청 헤더:
-
-```http
-Authorization: Bearer <access_token>
-```
-
-처리 흐름:
-
-```text
-현재 사용자 확인
-→ Redis refresh_token:{member_id} 삭제
-→ Redis refresh_token_value:{refresh_token} 삭제
-→ Access Token의 남은 만료 시간 계산
-→ Redis blacklist:access_token:{access_token} 저장
-```
-
 ## API 목록
 
 ### Auth API
 
-| Method | URL                 | 인증   | 설명                                   |
-| ------ | ------------------- | ------ | -------------------------------------- |
-| POST   | `/api/auth/signup`  | 불필요 | 로컬 회원가입                          |
-| POST   | `/api/auth/login`   | 불필요 | 로컬 로그인 및 토큰 발급               |
-| GET    | `/api/auth/me`      | 필요   | 현재 로그인 사용자 조회                |
-| POST   | `/api/auth/reissue` | 불필요 | Refresh Token 기반 Access Token 재발급 |
-| POST   | `/api/auth/logout`  | 필요   | 로그아웃                               |
+| Method | URL                 | 인증   | 설명                                                      |
+| ------ | ------------------- | ------ | --------------------------------------------------------- |
+| POST   | `/api/auth/signup`  | 불필요 | 로컬 회원가입                                             |
+| POST   | `/api/auth/login`   | 불필요 | 로컬 로그인 및 토큰 발급                                  |
+| GET    | `/api/auth/me`      | 필요   | 현재 로그인 사용자 조회                                   |
+| POST   | `/api/auth/reissue` | 불필요 | Refresh Token 기반 Access Token 재발급                    |
+| POST   | `/api/auth/logout`  | 필요   | 로그아웃, Refresh Token 삭제, Access Token blacklist 등록 |
 
 ### Account API
 
@@ -442,6 +422,7 @@ Authorization: Bearer <access_token>
 account_id는 현재 로그인 사용자의 계좌여야 함
 category_id가 있으면 현재 로그인 사용자의 카테고리여야 함
 transaction_type과 category_type이 일치해야 함
+amount는 0보다 커야 함
 ```
 
 ### Statistics API
@@ -453,6 +434,60 @@ transaction_type과 category_type이 일치해야 함
 | GET    | `/api/statistics/category`              | 필요 | 현재 사용자 카테고리별 수입/지출 통계 조회 |
 | GET    | `/api/statistics/category?type=INCOME`  | 필요 | 현재 사용자 수입 카테고리 통계 조회        |
 | GET    | `/api/statistics/category?type=EXPENSE` | 필요 | 현재 사용자 지출 카테고리 통계 조회        |
+
+## 응답 모델
+
+### 공통 메시지 응답
+
+삭제 API와 로그아웃 API는 `MessageResponse`를 사용합니다.
+
+```json
+{
+  "message": "처리 결과 메시지"
+}
+```
+
+적용 대상:
+
+- `POST /api/auth/logout`
+- `DELETE /api/accounts/{account_id}`
+- `DELETE /api/categories/{category_id}`
+- `DELETE /api/transactions/{transaction_id}`
+
+### 통계 응답
+
+| API                            | Response Model                     |
+| ------------------------------ | ---------------------------------- |
+| `GET /api/statistics/summary`  | `SummaryResponse`                  |
+| `GET /api/statistics/monthly`  | `list[MonthlyStatisticsResponse]`  |
+| `GET /api/statistics/category` | `list[CategoryStatisticsResponse]` |
+
+## 예외 처리 기준
+
+현재 예외 응답은 FastAPI 기본 형식을 사용합니다.
+
+```json
+{
+  "detail": "에러 메시지"
+}
+```
+
+예외 메시지는 `app/core/error_messages.py`에서 상수로 관리합니다.
+
+| 상황                             | 상태코드 | 메시지                                         |
+| -------------------------------- | -------: | ---------------------------------------------- |
+| 이메일 중복                      |      409 | 이미 사용 중인 이메일입니다.                   |
+| 로그인 실패                      |      401 | 이메일 또는 비밀번호가 올바르지 않습니다.      |
+| 로컬 로그인 회원 아님            |      400 | 로컬 로그인 회원이 아닙니다.                   |
+| 유효하지 않은 Access Token       |      401 | 유효하지 않은 토큰입니다.                      |
+| 만료된 Access Token              |      401 | 만료된 토큰입니다.                             |
+| 로그아웃된 Access Token          |      401 | 로그아웃된 토큰입니다.                         |
+| 유효하지 않은 Refresh Token      |      401 | 유효하지 않은 Refresh Token입니다.             |
+| 계좌 없음                        |      404 | 계좌를 찾을 수 없습니다.                       |
+| 카테고리 없음                    |      404 | 카테고리를 찾을 수 없습니다.                   |
+| 거래 없음                        |      404 | 거래 내역을 찾을 수 없습니다.                  |
+| 거래 유형과 카테고리 유형 불일치 |      400 | 거래 유형과 카테고리 유형이 일치하지 않습니다. |
+| 거래 금액이 0 이하               |      400 | 거래 금액은 0보다 커야 합니다.                 |
 
 ## 데이터베이스 확인 명령어
 
@@ -485,30 +520,31 @@ ORDER BY t.id;
 
 ## Redis 확인 명령어
 
+Redis 접속:
+
 ```bash
 docker exec -it redis-dev redis-cli
 ```
 
+인증:
+
 ```redis
 AUTH 1234
+```
+
+Refresh Token 확인:
+
+```redis
 KEYS refresh_token*
+```
+
+Access Token blacklist 확인:
+
+```redis
 KEYS blacklist:access_token*
 ```
 
-Refresh Token 저장 구조:
-
-```text
-refresh_token:{member_id} -> latest_refresh_token
-refresh_token_value:{refresh_token} -> member_id
-```
-
-Access Token blacklist 저장 구조:
-
-```text
-blacklist:access_token:{access_token} -> member_id
-```
-
-Redis TTL 확인:
+TTL 확인:
 
 ```redis
 TTL refresh_token:{member_id}
@@ -544,13 +580,22 @@ TTL blacklist:access_token:{access_token}
 - 현재 로그인 사용자 기준 요약 통계 API
 - 현재 로그인 사용자 기준 월별 수입/지출 통계 API
 - 현재 로그인 사용자 기준 카테고리별 수입/지출 통계 API
+- 공통 메시지 응답 모델 분리
+- 통계 API 응답 모델 적용
+- 예외 메시지 상수화
 - Swagger 기반 API 테스트
 
 ### 진행 예정
 
+- 자동 테스트 추가
+- 프론트엔드 API 연동
 - OAuth 로그인 API
 - 콘텐츠 API 구현
 - 광고 / 이벤트 / 공지사항 / 정보성 게시글 API 연동
-- 프론트엔드 API 연동
-- API 응답 스키마 정리
-- 예외 응답 형식 표준화
+- 외부 계좌 연동 또는 Mock Bank Provider 기반 동기화 구조 검토
+
+---
+
+## 관련 문서
+
+- `backend/docs/auth-plan.md`: 인증 구현 및 검증 정리
