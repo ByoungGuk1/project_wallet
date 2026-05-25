@@ -134,7 +134,10 @@ def _apply_transaction_to_balance(
     amount: int,
 ):
     if amount <= 0:
-        raise HTTPException(status_code=400, detail=error_messages.error_messages.INVALID_TRANSACTION_AMOUNT)
+        raise HTTPException(
+            status_code=400,
+            detail=error_messages.INVALID_TRANSACTION_AMOUNT
+            )
 
     if transaction_type == TransactionType.INCOME:
         account.balance += amount
