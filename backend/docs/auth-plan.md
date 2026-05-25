@@ -2,18 +2,11 @@
 
 ## 기준
 
-- 프로젝트: `project_wallet`
-- 대상: `backend`
-- 기준 커밋: `48f6aa2`
-- 대상 파일: `backend/docs/auth-plan.md`
-
 이 문서는 `project_wallet` 백엔드의 인증 구현 상태를 정리합니다.
 
 기존 `auth-plan.md`는 인증 기능을 설계하기 위한 초기 계획 문서였지만, 현재 백엔드에는 로컬 회원가입, 로그인, JWT Access Token, Redis 기반 Refresh Token, Refresh Token Rotation, 로그아웃, Access Token blacklist, 현재 로그인 사용자 기준 API 보호가 구현되어 있습니다.
 
 따라서 이 문서는 “계획”이 아니라 “현재 인증 구현 요약 및 검증 기준”으로 관리합니다.
-
----
 
 ## 1. 인증 기능 목표
 
@@ -37,8 +30,6 @@
 - 인증이 필요한 API는 현재 로그인 사용자 기준으로만 접근 가능하게 한다.
 - 클라이언트가 `member_id`를 직접 넘겨 다른 사용자의 데이터에 접근하지 못하게 한다.
 
----
-
 ## 2. 인증 관련 기술 스택
 
 | 구분             | 기술             |
@@ -51,8 +42,6 @@
 | ORM              | SQLAlchemy       |
 | Validation       | Pydantic         |
 | API Docs         | Swagger UI       |
-
----
 
 ## 3. 인증 기능 구현 상태
 
@@ -74,8 +63,6 @@
 | 에러 메시지 상수화       | 구현 완료 | `app/core/error_messages.py` 기준 관리                     |
 | 응답 모델 정리           | 구현 완료 | 공통 `MessageResponse`, 통계 응답 모델 적용                |
 
----
-
 ## 4. 인증 API 목록
 
 | Method | URL                 | 인증 필요 여부 | 설명                                                      |
@@ -85,8 +72,6 @@
 | GET    | `/api/auth/me`      | 필요           | 현재 로그인 사용자 조회                                   |
 | POST   | `/api/auth/reissue` | 불필요         | Refresh Token 기반 Access Token 재발급                    |
 | POST   | `/api/auth/logout`  | 필요           | 로그아웃, Refresh Token 삭제, Access Token blacklist 등록 |
-
----
 
 ## 5. 인증 데이터 구조
 
@@ -121,8 +106,6 @@
 
 현재 인증 구조는 로컬 로그인 중심으로 구현되어 있으며, OAuth 로그인은 향후 확장 계획으로 열어만 두었다.
 
----
-
 ## 6. 회원가입 흐름
 
 ```text
@@ -149,8 +132,6 @@
 | 이미 사용 중인 이메일             |      409 | 이미 사용 중인 이메일입니다.                 |
 | 회원가입 처리 중 중복 데이터 발생 |      409 | 회원가입 처리 중 중복 데이터가 발생했습니다. |
 
----
-
 ## 7. 로그인 흐름
 
 ```text
@@ -175,8 +156,6 @@
 | 로컬 로그인 회원이 아님       |      400 | 로컬 로그인 회원이 아닙니다.              |
 
 계정 존재 여부 노출을 줄이기 위해 로그인 실패 시에는 이메일 존재 여부를 구분해서 알려주지 않는다.
-
----
 
 ## 8. Token 설계
 
@@ -215,8 +194,6 @@ Authorization: Bearer <access_token>
 - 인증 의존성에서 `type=access`인지 검증
 - 로그아웃된 Access Token은 Redis blacklist에서 확인
 - Access Token은 만료 시간이 짧게 설정되는 것을 전제로 한다.
-
----
 
 ## 8.2 Refresh Token
 
@@ -263,8 +240,6 @@ TTL = REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
 - Redis TTL을 통해 만료 시간을 관리할 수 있다.
 - DB에 비해 세션성 데이터를 관리하기 적합하다.
 
----
-
 ## 9. Access Token 재발급 흐름
 
 현재 `/api/auth/reissue`는 Refresh Token Rotation을 적용
@@ -308,8 +283,6 @@ Refresh Token을 계속 재사용하면 토큰이 탈취되었을 때 만료 전
 
 Rotation을 적용하면 재발급 시 기존 Refresh Token을 폐기하고 새 Refresh Token을 발급하므로, 이전 Refresh Token 재사용을 차단할 수 있다.
 
----
-
 ## 10. 로그아웃 흐름
 
 현재 로그아웃은 Refresh Token 삭제와 Access Token blacklist 등록을 함께 수행한다.
@@ -348,8 +321,6 @@ TTL = Access Token exp - 현재 시각
 - 같은 Access Token으로 보호 API에 접근하면 401을 반환한다.
 - Access Token이 원래 만료되면 blacklist key도 TTL에 의해 삭제된다.
 
----
-
 ## 11. 현재 로그인 사용자 조회
 
 `GET /api/auth/me`는 Access Token을 기반으로 현재 로그인 사용자를 조회한다.
@@ -366,8 +337,6 @@ TTL = Access Token exp - 현재 시각
 7. DB에서 회원 정보를 조회
 8. 현재 로그인 사용자 정보를 반환
 ```
-
----
 
 ## 12. 인증 의존성
 
@@ -398,8 +367,6 @@ current_member = Depends(get_current_member)
 - 카테고리 API
 - 거래 API
 - 통계 API
-
----
 
 ## 13. 사용자별 데이터 접근 제어
 
@@ -454,8 +421,6 @@ ON t.account_id = a.id
 WHERE a.member_id = :member_id;
 ```
 
----
-
 ## 14. 인증이 필요한 API
 
 | 기능             | 인증 필요 여부 |
@@ -469,8 +434,6 @@ WHERE a.member_id = :member_id;
 | 카테고리 CRUD    | 필요           |
 | 거래 CRUD        | 필요           |
 | 통계 조회        | 필요           |
-
----
 
 ## 15. 예외 처리 기준
 
@@ -514,8 +477,6 @@ WHERE a.member_id = :member_id;
 | 거래 금액이 0 이하               |      400 | 거래 금액은 0보다 커야 합니다.                 |
 | 지원하지 않는 거래 유형          |      400 | 지원하지 않는 거래 유형입니다.                 |
 
----
-
 ## 16. 응답 모델 정리
 
 공통 메시지 응답은 `common_schema.py`의 `MessageResponse`로 분리한다.
@@ -539,8 +500,6 @@ class MessageResponse(BaseModel):
 | `GET /api/statistics/summary`  | `SummaryResponse`                  |
 | `GET /api/statistics/monthly`  | `list[MonthlyStatisticsResponse]`  |
 | `GET /api/statistics/category` | `list[CategoryStatisticsResponse]` |
-
----
 
 ## 17. Redis 확인 명령어
 
@@ -574,8 +533,6 @@ TTL 확인:
 TTL refresh_token:{member_id}
 TTL blacklist:access_token:{access_token}
 ```
-
----
 
 ## 18. 테스트 시나리오
 
@@ -636,8 +593,6 @@ TTL blacklist:access_token:{access_token}
 - [ ] 카테고리 삭제 응답이 `MessageResponse` 형태인지 확인
 - [ ] 거래 삭제 응답이 `MessageResponse` 형태인지 확인
 - [ ] 통계 API 응답 모델이 Swagger에 표시되는지 확인
-
----
 
 ## 19. 향후 개선 사항
 
@@ -700,8 +655,6 @@ TTL blacklist:access_token:{access_token}
 
 현재 단계에서는 FastAPI 기본 응답 형식을 유지
 
----
-
 ## 20. 구현 및 문서화 우선순위
 
 현재 인증 구조는 기능 추가보다 안정화와 검증을 우선한다.
@@ -714,8 +667,6 @@ TTL blacklist:access_token:{access_token}
 6. README와 `auth-plan.md`의 인증 설명 일치 여부 점검
 7. 프론트엔드 연동 방식 결정
 8. OAuth 로그인 확장 여부 결정
-
----
 
 ## 21. 요약정리
 
